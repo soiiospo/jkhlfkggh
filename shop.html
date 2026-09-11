@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop all furniture — Hartwood &amp; Co.</title>
+<meta name="description" content="Browse all Hartwood & Co. furniture — sofas, chairs, living, dining, bedroom and storage.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="shop">
+
+<div class="announce">Free delivery over $999 · 60-day home trial · 10-year frame warranty</div>
+
+<header class="site">
+  <div class="wrap header-in">
+    <a class="logo" href="index.html">Hartwood<em>&amp;Co.</em></a>
+    <nav class="nav">
+      <a href="index.html" data-nav="home">Home</a>
+      <a href="shop.html" data-nav="shop">Shop</a>
+      <a href="index.html#rooms" data-nav="rooms">Rooms</a>
+      <a href="index.html#story" data-nav="story">Our story</a>
+    </nav>
+    <div class="header-actions">
+      <a class="cart-link" href="cart.html" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </a>
+      <button class="burger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="wrap">
+    <p class="crumbs"><a href="index.html">Home</a> / Shop</p>
+    <h1>Shop all furniture</h1>
+    <p>Solid wood, honest prices, delivered and assembled in your room of choice.</p>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="chips" id="chips"></div>
+      <div class="toolbar-right">
+        <input type="search" id="searchInput" placeholder="Search furniture…" aria-label="Search products">
+        <select id="sortSelect" aria-label="Sort products">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+          <option value="rating">Top rated</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </div>
+    </div>
+    <p class="result-count" id="resultCount"></p>
+    <div class="prod-grid" id="prodGrid"></div>
+    <div class="empty-note" id="emptyNote" style="display:none">
+      <h2 class="serif">Nothing matches that search</h2>
+      <p>Try a different keyword or room.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="index.html">Hartwood<em>&amp;Co.</em></a>
+        <p style="margin-top:14px;max-width:300px">Solid wood furniture from our Portland workshop.</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html">All furniture</a></li>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="cart.html">Your cart</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Customer care</h4>
+        <ul>
+          <li><a href="shipping.html">Delivery &amp; assembly</a></li>
+          <li><a href="refund.html">60-day trial &amp; refunds</a></li>
+          <li><a href="mailto:hello@hartwood.demo">Contact us</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy policy</a></li>
+          <li><a href="refund.html">Refund policy</a></li>
+          <li><a href="terms.html">Terms of service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bar">
+      <span>© 2026 Hartwood &amp; Co. Furniture. All rights reserved.</span>
+      <span>Demo storefront — no real orders are processed.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  (function () {
+    let state = { cat: "All", q: "", sort: "featured" };
+
+    const params = new URLSearchParams(location.search);
+    if (params.get("cat") && CATEGORIES.includes(params.get("cat"))) {
+      state.cat = params.get("cat");
+    }
+
+    const chipsEl = document.getElementById("chips");
+    const grid = document.getElementById("prodGrid");
+    const count = document.getElementById("resultCount");
+    const empty = document.getElementById("emptyNote");
+    const search = document.getElementById("searchInput");
+    const sortSel = document.getElementById("sortSelect");
+
+    function renderChips() {
+      chipsEl.innerHTML = CATEGORIES.map(
+        (c) => `<button class="chip ${c === state.cat ? "active" : ""}" data-cat="${c}">${c}</button>`
+      ).join("");
+    }
+
+    function applySort(list) {
+      const l = [...list];
+      switch (state.sort) {
+        case "price-asc": return l.sort((a, b) => a.price - b.price);
+        case "price-desc": return l.sort((a, b) => b.price - a.price);
+        case "rating": return l.sort((a, b) => b.rating - a.rating);
+        case "name": return l.sort((a, b) => a.name.localeCompare(b.name));
+        default: return l.sort((a, b) => b.rating * b.reviews - a.rating * a.reviews);
+      }
+    }
+
+    function render() {
+      let list = PRODUCTS;
+      if (state.cat !== "All") list = list.filter((p) => p.category === state.cat);
+      if (state.q) {
+        const q = state.q.toLowerCase();
+        list = list.filter(
+          (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)
+        );
+      }
+      list = applySort(list);
+      grid.innerHTML = list.map((p) => Store.productCard(p)).join("");
+      grid.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+      count.textContent = `Showing ${list.length} of ${PRODUCTS.length} pieces`;
+      empty.style.display = list.length ? "none" : "block";
+    }
+
+    chipsEl.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-cat]");
+      if (!chip) return;
+      state.cat = chip.getAttribute("data-cat");
+      renderChips();
+      render();
+    });
+    search.addEventListener("input", () => { state.q = search.value.trim(); render(); });
+    sortSel.addEventListener("change", () => { state.sort = sortSel.value; render(); });
+
+    renderChips();
+    render();
+  })();
+</script>
+</body>
+</html>

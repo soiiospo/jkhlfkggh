@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your cart — Hartwood &amp; Co.</title>
+<meta name="description" content="Review your Hartwood & Co. cart and check out.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="cart">
+
+<div class="announce">Free delivery over $999 · 60-day home trial · 10-year frame warranty</div>
+
+<header class="site">
+  <div class="wrap header-in">
+    <a class="logo" href="index.html">Hartwood<em>&amp;Co.</em></a>
+    <nav class="nav">
+      <a href="index.html" data-nav="home">Home</a>
+      <a href="shop.html" data-nav="shop">Shop</a>
+      <a href="index.html#rooms" data-nav="rooms">Rooms</a>
+      <a href="index.html#story" data-nav="story">Our story</a>
+    </nav>
+    <div class="header-actions">
+      <a class="cart-link" href="cart.html" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/></svg>
+        <span class="cart-count" data-cart-count>0</span>
+      </a>
+      <button class="burger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="wrap">
+    <p class="crumbs"><a href="index.html">Home</a> / Cart</p>
+    <h1>Your cart</h1>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="cart-empty" id="cartEmpty" style="display:none">
+      <h2>Your cart is empty</h2>
+      <p style="color:var(--ink-soft);margin-bottom:26px">A great room starts with a single piece.</p>
+      <a class="btn btn-primary" href="shop.html">Start shopping</a>
+    </div>
+
+    <div class="cart-layout" id="cartLayout">
+      <div class="cart-items" id="cartItems"></div>
+      <aside class="summary">
+        <h3>Order summary</h3>
+        <form class="promo" id="promoForm">
+          <input type="text" id="promoInput" placeholder="Promo code (try HART10)" aria-label="Promo code">
+          <button class="btn btn-dark btn-sm" type="submit">Apply</button>
+        </form>
+        <div class="sum-row"><span>Subtotal</span><span id="sumSub">$0.00</span></div>
+        <div class="sum-row discount" id="discRow" style="display:none"><span>Discount (10%)</span><span id="sumDisc">−$0.00</span></div>
+        <div class="sum-row"><span>Delivery &amp; assembly</span><span id="sumShip">$0.00</span></div>
+        <div class="sum-total"><span>Total</span><span id="sumTotal">$0.00</span></div>
+        <button class="btn btn-primary btn-block" id="checkoutBtn">Proceed to checkout</button>
+        <p class="summary-note">
+          Demo checkout — no payment is processed and your cart is stored only in this browser.<br>
+          By ordering you agree to our <a href="terms.html">Terms</a> · <a href="refund.html">Refunds</a> · <a href="privacy.html">Privacy</a>
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-bar" style="border:0;padding-top:0">
+      <span>© 2026 Hartwood &amp; Co. Furniture. All rights reserved.</span>
+      <span><a href="shop.html">Continue shopping</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  (function () {
+    const FREE_SHIP = 999;
+    const SHIP_COST = 79;
+    let promo = 0; // 0 or 0.10
+
+    const layout = document.getElementById("cartLayout");
+    const emptyEl = document.getElementById("cartEmpty");
+    const itemsEl = document.getElementById("cartItems");
+
+    function totals() {
+      const cart = Store.getCart();
+      let sub = 0;
+      cart.forEach((l) => {
+        const p = PRODUCTS.find((p) => p.id === l.id);
+        if (p) sub += p.price * l.qty;
+      });
+      const disc = sub * promo;
+      const afterDisc = sub - disc;
+      const ship = afterDisc >= FREE_SHIP || afterDisc === 0 ? 0 : SHIP_COST;
+      return { sub, disc, ship, total: afterDisc + ship };
+    }
+
+    function render() {
+      const cart = Store.getCart();
+      if (!cart.length) {
+        layout.style.display = "none";
+        emptyEl.style.display = "block";
+        return;
+      }
+      layout.style.display = "grid";
+      emptyEl.style.display = "none";
+
+      itemsEl.innerHTML = cart
+        .map((l) => {
+          const p = PRODUCTS.find((p) => p.id === l.id);
+          if (!p) return "";
+          return `
+            <div class="cart-item">
+              <img src="${p.img}" alt="${p.name}">
+              <div>
+                <span class="ci-cat">${p.category}</span>
+                <h3 class="ci-name">${p.name}</h3>
+                <span class="ci-unit">${Store.money(p.price)} each</span>
+              </div>
+              <div class="ci-right">
+                <div class="qty">
+                  <button data-dec="${p.id}" aria-label="Decrease quantity">−</button>
+                  <span>${l.qty}</span>
+                  <button data-inc="${p.id}" aria-label="Increase quantity">+</button>
+                </div>
+                <span class="ci-total">${Store.money(p.price * l.qty)}</span>
+                <button class="ci-remove" data-rm="${p.id}">Remove</button>
+              </div>
+            </div>`;
+        })
+        .join("");
+
+      const t = totals();
+      document.getElementById("sumSub").textContent = Store.money(t.sub);
+      document.getElementById("discRow").style.display = t.disc > 0 ? "flex" : "none";
+      document.getElementById("sumDisc").textContent = "−" + Store.money(t.disc);
+      document.getElementById("sumShip").textContent = t.ship === 0 ? "Free" : Store.money(t.ship);
+      document.getElementById("sumTotal").textContent = Store.money(t.total);
+    }
+
+    itemsEl.addEventListener("click", (e) => {
+      const inc = e.target.closest("[data-inc]");
+      const dec = e.target.closest("[data-dec]");
+      const rm = e.target.closest("[data-rm]");
+      const cart = Store.getCart();
+      if (inc) {
+        const l = cart.find((l) => l.id === inc.getAttribute("data-inc"));
+        if (l) Store.setQty(l.id, l.qty + 1);
+      } else if (dec) {
+        const l = cart.find((l) => l.id === dec.getAttribute("data-dec"));
+        if (l) Store.setQty(l.id, l.qty - 1);
+      } else if (rm) {
+        Store.setQty(rm.getAttribute("data-rm"), 0);
+        Store.showToast("Item removed");
+      } else {
+        return;
+      }
+      render();
+    });
+
+    document.getElementById("promoForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const code = document.getElementById("promoInput").value.trim().toUpperCase();
+      if (code === "HART10") {
+        promo = 0.10;
+        Store.showToast("Promo applied: 10% off");
+      } else {
+        promo = 0;
+        Store.showToast(code ? "That code isn't valid" : "Enter a promo code");
+      }
+      render();
+    });
+
+    document.getElementById("checkoutBtn").addEventListener("click", () => {
+      const t = totals();
+      Store.showToast(`Demo checkout complete — ${Store.money(t.total)}. Thank you!`);
+      localStorage.removeItem("hartwood_cart");
+      promo = 0;
+      Store.updateCartBadge();
+      render();
+    });
+
+    render();
+  })();
+</script>
+</body>
+</html>
